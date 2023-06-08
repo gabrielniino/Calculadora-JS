@@ -49,6 +49,17 @@ body {
 .botao:hover {
     background-color: rgba(56, 55, 55, 0.3);
 }
+
+.botao-numerico {
+    font-weight: bolder;
+    background-color: rgb(0, 0, 0, 0.6);
+    color: #ccc;
+}
+
+.botao-numerico:hover {
+    background-color: rgb(0, 0, 0, 0.9);
+}
+
 .display {
     display: flex;
     justify-content: flex-end;

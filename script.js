@@ -2,6 +2,11 @@ function Calculadora() {
   var self = this;
   this.pai = document.createElement('div');
   this.pai.className = 'calculadora';
+
+  this.displayHistorico = document.createElement('div'); // Elemento para exibir o histórico
+  this.displayHistorico.className = 'display-historico';
+  this.pai.appendChild(this.displayHistorico);
+
   this.display = document.createElement('div');
   this.display.className = 'display';
   this.pai.appendChild(this.display);
@@ -10,6 +15,8 @@ function Calculadora() {
   this.operador = '';
   this.primeiroNumero = '';
   this.segundoNumero = '';
+  this.historico = []; // Array para armazenar as operações do histórico
+  this.memoria = null; // Variável para armazenar o valor da memória
 
   this.limpar = function () {
     this.resultado = '';
@@ -22,6 +29,9 @@ function Calculadora() {
   this.criarBotao = function (texto, callback) {
     var botao = document.createElement('div');
     botao.className = 'botao';
+    if (!isNaN(texto)) {
+      botao.classList.add('botao-numerico');
+    }
     botao.textContent = texto;
     botao.addEventListener('click', callback.bind(self));
     this.pai.appendChild(botao);
@@ -54,6 +64,8 @@ function Calculadora() {
 
   this.cliqueBotaoIgual = function () {
     if (this.operador !== '') {
+      var expressao = this.primeiroNumero + ' ' + this.operador + ' ' + this.segundoNumero;
+
       switch (this.operador) {
         case '+':
           this.resultado = parseFloat(this.primeiroNumero) + parseFloat(this.segundoNumero);
@@ -68,10 +80,15 @@ function Calculadora() {
           this.resultado = parseFloat(this.primeiroNumero) / parseFloat(this.segundoNumero);
           break;
       }
+
       this.operador = '';
       this.primeiroNumero = this.resultado.toString();
       this.segundoNumero = '';
       this.atualizarDisplay();
+
+      // Adiciona a expressão e o resultado ao histórico
+      this.historico.push({ expressao: expressao, resultado: this.resultado });
+      this.atualizarHistorico(); // Atualiza o histórico
     }
   };
 
@@ -84,6 +101,42 @@ function Calculadora() {
     this.resultado = this.operador === '' ? this.primeiroNumero : this.segundoNumero;
     this.atualizarDisplay();
   };
+
+  this.atualizarHistorico = function () {
+    var historicoTexto = '';
+
+    for (var i = 0; i < this.historico.length; i++) {
+      var item = this.historico[i];
+      historicoTexto += item.expressao + ' = ' + item.resultado + '<br>';
+    }
+
+    this.displayHistorico.innerHTML = historicoTexto; // Atualiza o conteúdo do elemento HTML
+  };
+
+  this.limparMemoria = function () {
+    this.memoria = null;
+  };
+
+  this.recuperarMemoria = function () {
+    if (this.memoria !== null) {
+      this.resultado = this.memoria;
+      this.atualizarDisplay();
+    }
+  };
+
+  this.salvarMemoria = function () {
+    this.memoria = this.resultado;
+  };
+
+  this.adicionarMemoria = function () {
+    if (this.memoria !== null) {
+      this.memoria += parseFloat(this.resultado);
+    } else {
+      this.memoria = parseFloat(this.resultado);
+    }
+    this.atualizarDisplay();
+  };
+
 
   this.apagarUltimoNumero = function () {
     if (this.operador === '') {
@@ -199,6 +252,10 @@ function Calculadora() {
 
   // Cria os botões e adiciona à calculadora
   var botoes = [
+    ['MC', this.limparMemoria],
+    ['MR', this.recuperarMemoria],
+    ['MS', this.salvarMemoria],
+    ['M+', this.adicionarMemoria],
     ['%', self.calcularPorcentagem],
     ['√', self.calcularRaizQuadrada],
     ['x²', self.calcularQuadrado],
@@ -222,7 +279,7 @@ function Calculadora() {
     ['+/-', self.inverterSinal],
     ['0', function () { self.cliqueBotaoNumero('0'); }],
     ['.', self.cliqueBotaoPonto],
-    ['=', self.cliqueBotaoIgual]
+    ['=', self.cliqueBotaoIgual],
   ];
 
   for (var i = 0; i < botoes.length; i++) {
